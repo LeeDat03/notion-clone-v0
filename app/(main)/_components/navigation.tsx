@@ -1,14 +1,28 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { ChevronsLeft, MenuIcon } from "lucide-react";
+import {
+  ChevronsLeft,
+  MenuIcon,
+  PlusCircle,
+  Search,
+  Settings,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
+import { UserItem } from "./user-item";
+
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Item } from "./item";
+import { toast } from "sonner";
 
 export const Navigation = () => {
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const documents = useQuery(api.documents.get);
+  const create = useMutation(api.documents.create);
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -23,6 +37,7 @@ export const Navigation = () => {
     } else {
       resetWidth();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile]);
 
   useEffect(() => {
@@ -96,13 +111,23 @@ export const Navigation = () => {
     }
   };
 
+  const handleCreate = () => {
+    const promise = create({ title: "Untitled" });
+
+    toast.promise(promise, {
+      loading: "Creating a new note...",
+      success: "New note created!",
+      error: "Failed to create a new note!",
+    });
+  };
+
   return (
     <>
       <aside
         ref={sidebarRef}
         className={cn(
-          "group/sidebar h-full bg-secondary overflow-y-auto relative flex w-60 flex-col z-[99999]",
-          isResetting && "transition-all ease-in-out duration-300",
+          "group/sidebar h-full bg-secondary overflow-y-auto relative flex w-60 flex-col z-[99999] ",
+          isResetting && "transition-all ease-in-out duration-300 ",
           isMobile && "w-0"
         )}
       >
@@ -118,11 +143,19 @@ export const Navigation = () => {
         </div>
 
         <div>
-          <p>Action Items</p>
+          <UserItem />
+
+          <Item onClick={() => {}} label="Search" icon={Search} isSearch />
+
+          <Item onClick={() => {}} label="Settings" icon={Settings} />
+
+          <Item onClick={handleCreate} label="New page" icon={PlusCircle} />
         </div>
 
         <div className="mt-4">
-          <p>Documents</p>
+          {documents?.map((document) => {
+            return <div key={document._id}>{document.title}</div>;
+          })}
         </div>
 
         <div
@@ -135,16 +168,18 @@ export const Navigation = () => {
       <div
         ref={navbarRef}
         className={cn(
-          "absolute top-0 left-60 z-[99999] w-[calc(100% - 240px)]",
+          "absolute top-0 z-[99999] left-60 w-[calc(100%-240px)]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "left-0 w-full"
         )}
       >
-        <nav className="bg-transparent px-3 py-2 w-full">
+        <nav
+          className={cn("bg-transparent w-full", isCollapsed && "px-3 py-2")}
+        >
           {isCollapsed && (
             <MenuIcon
-              onClick={resetWidth}
               role="button"
+              onClick={resetWidth}
               className="h-6 w-6 text-muted-foreground"
             />
           )}
