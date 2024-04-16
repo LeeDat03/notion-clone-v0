@@ -14,21 +14,26 @@ import { usePathname } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useMediaQuery } from "usehooks-ts";
-
-import { useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-
-import { UserItem } from "./user-item";
-import { Item } from "./item";
-import { DocumentList } from "./document-list";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useSearch } from "@/hooks/use-search";
+import { useSettings } from "@/hooks/use-settings";
+
+import { UserItem } from "./user-item";
+import { Item } from "./item";
+import { DocumentList } from "./document-list";
 import TrashBox from "./trash-box";
 
 export const Navigation = () => {
+  const settings = useSettings();
+  const search = useSearch();
+
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const create = useMutation(api.documents.create);
@@ -154,9 +159,9 @@ export const Navigation = () => {
         <div>
           <UserItem />
 
-          <Item onClick={() => {}} label="Search" icon={Search} isSearch />
+          <Item onClick={search.onOpen} label="Search" icon={Search} isSearch />
 
-          <Item onClick={() => {}} label="Settings" icon={Settings} />
+          <Item onClick={settings.onOpen} label="Settings" icon={Settings} />
 
           <Item onClick={handleCreate} label="New page" icon={PlusCircle} />
         </div>
